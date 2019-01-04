@@ -87,6 +87,8 @@ def main():
     
     max_paging_index = (FLAGS['max_paging_index'] // 2) + 1
 
+    summary = {}
+
     for i, query in enumerate(queries, 1):
         params = {'query': query, 'pagingIndex': 1, 'pagingSize': 40}
         html = get_html(URL, params)
@@ -109,6 +111,8 @@ def main():
                     num_unpopular_products += 1
         print(f"리뷰 갯수가 {FLAGS['num_reviews']}개 미만인 상품은 총 {num_unpopular_products}개 입니다.")
         print('=' * 20)
+        summary[query] = num_unpopular_products
+    print(summary.items())
 
 
 if __name__ == "__main__":
