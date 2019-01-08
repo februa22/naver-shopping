@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import argparse
+import os
 import sys
 
 import requests
@@ -77,9 +78,13 @@ def get_possible_paging_index(num_productset, paging_size=80):
 
 
 def main():
+    summary_path = None
     if FLAGS['query'] == 'all':
         if FLAGS['topk_filepath']:
             queries = generate_topk_queries(FLAGS['topk_filepath'])
+            summary_path = make_summary_path(FLAGS['topk_filepath'],
+                                             FLAGS['max_paging_index'],
+                                             FLAGS['num_reviews'])
         else:
             raise AttributeError('검색어가 "all"인 경우 인기검색어목록 파일이 필요합니다.')
     else:
@@ -107,12 +112,38 @@ def main():
             parsed_produts = parse_produts(products)
             for product in parsed_produts:
                 if product['reviews'] < FLAGS['num_reviews']:
-                    print(f'  {product}')
+                    # print(f'  {product}')
                     num_unpopular_products += 1
         print(f"리뷰 갯수가 {FLAGS['num_reviews']}개 미만인 상품은 총 {num_unpopular_products}개 입니다.")
         print('=' * 20)
         summary[query] = num_unpopular_products
     print(summary.items())
+    write_summary(summary, summary_path)
+
+
+def make_summary_path(path, max_paging_index, num_reviews):
+    """
+    Args:
+    path -- `data/knits.top100.txt`
+    max_paging_index -- `6`
+    num_reviews -- `5`
+
+    Returns:
+    summary_path -- `summary/knits.top100.summary.paging6.review5.txt
+    """
+    _, tail = os.path.split(path)
+    filename, file_extension = os.path.splitext(tail)
+    summary_filename = f'{filename}.summary.paging{max_paging_index}.review{num_reviews}.txt'
+    return os.path.join('summary', summary_filename)
+
+
+def write_summary(summary, summary_path):
+    if summary_path:
+        head = ['검색순위', '검색어', '판매점수 낮은 상품 갯수']
+        with open(summary_path, mode='w', encoding='utf-8') as f:
+            f.write(f'{head[0]}, {head[1]}, {head[2]}\n')
+            for i, (k, v) in enumerate(summary.items(), 1):
+                f.write(f'{str(i)}, {k}, {str(v)}\n')
 
 
 if __name__ == "__main__":
