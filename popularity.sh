@@ -1,9 +1,9 @@
 #!/bin/sh
 
 QUERY="all"
-TOPK_FILEPATH=data/query.knits.top100.txt
+TOPK_FILEPATH=data/knits.top100.txt
 NUM_REVIEWS=5
-MAX_PAGING_INDEX=3
+MAX_PAGING_INDEX=6
 
 python -m popularity.popularity \
   --query="$QUERY" \
