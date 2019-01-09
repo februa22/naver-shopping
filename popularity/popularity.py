@@ -1,14 +1,16 @@
 # coding=utf-8
-
 import argparse
 import os
 import sys
+from urllib.parse import urlencode, quote_plus
 
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
 
 URL = 'https://search.shopping.naver.com/search/all.nhn'
 FLAGS = None
+DRIVER = webdriver.Chrome('C:\\Users\\22feb\\Downloads\\chromedriver_win32\\chromedriver.exe')
 
 
 def get_html(url, params=None):
@@ -17,6 +19,12 @@ def get_html(url, params=None):
     if resp.status_code == 200:
         html = resp.text
     return html
+
+
+def get_html_by_selenium(driver, url, params):
+    params_encoded = urlencode(params, quote_via=quote_plus)
+    driver.get(f'{URL}?{params_encoded}')
+    return driver.page_source
 
 
 def parse_html(html):
@@ -96,7 +104,8 @@ def main():
 
     for i, query in enumerate(queries, 1):
         params = {'query': query, 'pagingIndex': 1, 'pagingSize': 40}
-        html = get_html(URL, params)
+        # html = get_html(URL, params)
+        html = get_html_by_selenium(DRIVER, URL, params)
         num_productset = get_num_productset(html)
         possible_paging_index = get_possible_paging_index(num_productset)
         possible_paging_index = min(possible_paging_index, max_paging_index)
@@ -106,7 +115,8 @@ def main():
         for paging_index in range(possible_paging_index):
             paging_index += 1
             params = {'query': query, 'pagingIndex': paging_index, 'pagingSize': 80}
-            html = get_html(URL, params)
+            # html = get_html(URL, params)
+            html = get_html_by_selenium(DRIVER, URL, params)
             num_productset = get_num_productset(html)
             products = parse_html(html)
             parsed_produts = parse_produts(products)
