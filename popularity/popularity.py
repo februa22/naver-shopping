@@ -133,7 +133,7 @@ def make_summary_path(path, max_paging_index, num_reviews):
     """
     _, tail = os.path.split(path)
     filename, file_extension = os.path.splitext(tail)
-    summary_filename = f'{filename}.summary.paging{max_paging_index}.review{num_reviews}.txt'
+    summary_filename = f'{filename}.summary.paging{max_paging_index}.review{num_reviews}.{file_extension}'
     return os.path.join('summary', summary_filename)
 
 
