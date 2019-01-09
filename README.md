@@ -26,7 +26,9 @@ Optional arguments:
   --topk_filepath TOPK_FILEPATH
                         검색어가 "all"인 경우에 사용하는 인기검색어목록 파일경로
   --num_reviews NUM_REVIEWS
-                        리뷰 갯수가 이 숫자보다 작은 상품만 조회합니다.
+                        리뷰 갯수가 이 값보다 작은 상품만 조회합니다. (default: 5)
+  --num_jjim NUM_JJIM
+                        찜하기 갯수가 이 값보다 작은 상품만 조회합니다. (default: 10)
   --max_paging_index MAX_PAGING_INDEX
                         최대 페이지 갯수 (defalut: 3)
 ```
