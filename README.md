@@ -7,6 +7,7 @@ Clone or download codes: <https://github.com/februa22/naver-shopping.git>
 Install Python packages using `pip install`:
 
 ```python
+selenium==3.141.0
 beautifulsoup4==4.6.3
 requests==2.21.0
 ```
