@@ -10,7 +10,7 @@ from selenium import webdriver
 
 URL = 'https://search.shopping.naver.com/search/all.nhn'
 FLAGS = None
-DRIVER = webdriver.Chrome('C:\\Users\\22feb\\dev\\chromedriver_win32\\chromedriver.exe')
+DRIVER = None
 
 
 def get_html(url, params=None):
@@ -176,10 +176,12 @@ if __name__ == "__main__":
     parser.add_argument('--num_reviews', type=int, default=5, help='리뷰 갯수가 이 값보다 작은 상품만 조회합니다. (default: 5)')
     parser.add_argument('--num_jjim', type=int, default=10, help='찜하기 갯수가 이 값보다 작은 상품만 조회합니다. (default: 10)')
     parser.add_argument('--max_paging_index', type=int, default=3, help='최대 페이지 갯수 (default: 3)')
+    parser.add_argument('--chromedrive_path', type=str, default="", help='Chrome Drive Path for Selenium')
     
     try:
         FLAGS = vars(parser.parse_args())
     except:
         parser.print_help()
         sys.exit(0)
+    DRIVER = webdriver.Chrome(FLAGS['chromedrive_path'])
     main()

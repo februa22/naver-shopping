@@ -32,6 +32,8 @@ Optional arguments:
                         찜하기 갯수가 이 값보다 작은 상품만 조회합니다. (default: 10)
   --max_paging_index MAX_PAGING_INDEX
                         최대 페이지 갯수 (defalut: 3)
+  --chromedrive_path CHROMEDRIVE_PATH
+                        Chrome Drive Path for Selenium
 ```
 
 Sample output:
