@@ -2,7 +2,8 @@
 import argparse
 import os
 import sys
-from urllib.parse import urlencode, quote_plus
+from urllib.parse import quote_plus
+from urllib.parse import urlencode
 
 import requests
 from bs4 import BeautifulSoup
@@ -77,13 +78,18 @@ def parse_produts(products):
 def generate_topk_queries(topk_filepath):
     for line in open(topk_filepath, encoding='utf-8'):
         line = line.strip()
-        query = ''.join(filter(str.isalpha, line))
-        yield query
+        query_start_index = 0
+        for i, c in enumerate(line):
+            if c.isalpha():
+                query_start_index = i
+                break
+        yield line[query_start_index:]
 
 
 def get_num_productset(html):
     soup = BeautifulSoup(html, 'html.parser')
     productset_soup = soup.find("a", {"class": "_productSet_total"})
+    # TODO(jongseong): AttributeError: 'NoneType' object has no attribute 'text'
     productset = productset_soup.text.strip()
     productset = ''.join(filter(str.isdigit, productset))
     return int(productset)
