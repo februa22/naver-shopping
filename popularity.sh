@@ -5,7 +5,7 @@ TOPK_FILEPATH=data/blouse.top40.txt
 NUM_REVIEWS=5
 NUM_JJIM=10
 MAX_PAGING_INDEX=6
-CHROMEDRIVE_PATH=C:\\Users\\22feb\\dev\\chromedriver_win32\\chromedriver.exe
+CHROMEDRIVE_PATH=resources/chromedriver_win32/chromedriver.exe
 
 python -m popularity.popularity \
   --query="$QUERY" \
