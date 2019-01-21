@@ -123,7 +123,10 @@ def main():
             params = {'query': query, 'pagingIndex': 1, 'pagingSize': 40}
             # html = get_html(URL, params)
             html = get_html_by_selenium(DRIVER, URL, params)
-            num_productset = get_num_productset(html)
+            try:
+                num_productset = get_num_productset(html)
+            except AttributeError:
+                continue
             possible_paging_index = get_possible_paging_index(num_productset)
             possible_paging_index = min(possible_paging_index, max_paging_index)
             print(f'[{i}] 검색어: {query}; 전체 상품 갯수: {num_productset}')
@@ -134,7 +137,6 @@ def main():
                 params = {'query': query, 'pagingIndex': paging_index, 'pagingSize': 80}
                 # html = get_html(URL, params)
                 html = get_html_by_selenium(DRIVER, URL, params)
-                num_productset = get_num_productset(html)
                 products = parse_html(html)
                 parsed_produts = parse_produts(products)
                 for product in parsed_produts:
