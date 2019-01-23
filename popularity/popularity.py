@@ -12,6 +12,7 @@ from selenium import webdriver
 URL = 'https://search.shopping.naver.com/search/all.nhn'
 FLAGS = None
 DRIVER = None
+MALL_GRADES = {"플래티넘": 6, "프리미엄": 5, "빅파워": 4, "파워": 3, "새싹": 2, "씨앗": 1}
 
 
 def get_html(url, params=None):
@@ -22,9 +23,12 @@ def get_html(url, params=None):
     return html
 
 
-def get_html_by_selenium(driver, url, params):
-    params_encoded = urlencode(params, quote_via=quote_plus)
-    driver.get(f'{URL}?{params_encoded}')
+def get_html_by_selenium(driver, url, params=None):
+    if params:
+        params_encoded = urlencode(params, quote_via=quote_plus)
+        driver.get(f'{url}?{params_encoded}')
+    else:
+        driver.get(url)
     return driver.page_source
 
 
@@ -50,7 +54,7 @@ def allowed_class(product_classes):
     return True
 
 
-def parse_produts(products):
+def parse_produts(driver, products):
     for product in products:
         parsed_product = dict()
 
@@ -72,8 +76,56 @@ def parse_produts(products):
         except ValueError:
             print(parsed_product['jjim'])
             raise
+        parsed_product['mall_grade'] = parse_mall_grade(driver, product)
         yield parsed_product
 
+
+def parse_mall_grade(driver, product):
+    info_soup = product.find("div", {"class": "info"})
+    info_mall_soup = product.find("div", {"class": "info_mall"})
+    mall_txt_soup = info_mall_soup.find("p", {"class": "mall_txt"})
+
+    mall_list_url = btn_compare_exists(info_soup)
+    if mall_list_url:
+        html = get_html_by_selenium(driver, mall_list_url)
+        soup = BeautifulSoup(html, "html.parser")
+        price_diff_soup = soup.find("div", {"id": "section_price_list"})
+        mall_detail_soups = price_diff_soup.find_all("a", {"class": "_btn_mall_detail"})
+        mall_grades = [1]
+        if mall_detail_soups:
+            for mall_detail_soup in mall_detail_soups:
+                data_mall_grade = mall_detail_soup["data-mall-grade"]
+                if data_mall_grade:
+                    mall_grades.append(mall_grade_to_number(data_mall_grade))
+        mall_grade = max(mall_grades)
+    else:
+        data_mall_grade = mall_txt_soup.find("a", {"class": "_btn_mall_detail"})["data-mall-grade"]
+        if data_mall_grade:
+           mall_grade = mall_grade_to_number(data_mall_grade)
+        else:
+            mall_grade = 1
+    return mall_grade
+
+
+def mall_grade_to_number(data_mall_grade):
+    data_mall_grade = data_mall_grade.strip()
+    return MALL_GRADES.get(data_mall_grade, 1)
+
+
+def mall_list_exists(info_mall_soup):
+    if info_mall_soup.find("ul", {"class": "mall_list"}):
+        return True
+    else:
+        return False
+
+
+def btn_compare_exists(info_soup):
+    btn_compare_soup = info_soup.find("a", {"class": "btn_compare"})
+    if btn_compare_soup:
+        return btn_compare_soup["href"]
+    else:
+        return None
+        
 
 def generate_topk_queries(topk_filepath):
     for line in open(topk_filepath, encoding='utf-8'):
