@@ -118,7 +118,7 @@ def main():
     summary = {}
 
     with open(summary_path, mode='a', encoding='utf-8') as f:
-        f.write('검색어, 판매점수 낮은 상품 갯수\n')
+        f.write('# 검색어, 판매점수 낮은 상품 갯수, 전체 상품 갯수, 점수\n')
         for i, query in enumerate(queries, 1):
             params = {'query': query, 'pagingIndex': 1, 'pagingSize': 40}
             # html = get_html(URL, params)
@@ -143,7 +143,7 @@ def main():
                     if product['reviews'] < FLAGS['num_reviews'] and product['jjim'] < FLAGS['num_jjim']:
                         # print(f'  {product}')
                         num_unpopular_products += 1
-            f.write(f"{query}, {str(num_unpopular_products)}\n")
+            f.write(f"{query}, {num_unpopular_products}, {num_productset}, {num_unpopular_products / num_productset * 1000:.2f}\n")
             print(f"판매점수가 낮은 상품은 총 {num_unpopular_products}개 입니다.")
             print('=' * 20)
             summary[query] = num_unpopular_products
