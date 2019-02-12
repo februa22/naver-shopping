@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
+import datetime
 import os
 
 from matplotlib import pyplot as plt
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.tree import DecisionTreeRegressor
+
+
+now = datetime.datetime.now()
 
 
 class RankRegression:
     def __init__(self, flags):
         self.flags = flags
-        # self.model = RandomForestRegressor(n_estimators=100)
-        self.model = GradientBoostingRegressor(n_estimators=1000)
+        # self.model = DecisionTreeRegressor()
+        # self.model = RandomForestRegressor(n_estimators=2000)
+        self.model = GradientBoostingRegressor(n_estimators=2000)
 
     @property
     def dataset_filepath(self):
@@ -33,11 +39,11 @@ class RankRegression:
         inputs, targets = self._get_or_generate_datasets()
         score = self.model.score(inputs, targets)
         print(f"train-set score: {str(score)}")
-        print(f"possible: {str(self.model.predict([[0, 201901, 10, 1]]))}")
-        print(f"possible: {str(self.model.predict([[1, 201901, 10, 1]]))}")
-        print(f"possible: {str(self.model.predict([[10, 201901, 40, 1]]))}")
-        print(f"possible: {str(self.model.predict([[10, 201901, 60, 1]]))}")
-        print(f"possible: {str(self.model.predict([[10, 201810, 60, 1]]))}")
+        print(f"possible: {str(self.model.predict([[0, 1, 10, 1]]))}")
+        print(f"possible: {str(self.model.predict([[1, 1, 10, 1]]))}")
+        print(f"possible: {str(self.model.predict([[10, 1, 10, 1]]))}")
+        print(f"possible: {str(self.model.predict([[10, 2, 10, 1]]))}")
+        print(f"possible: {str(self.model.predict([[10, 1, 10, 3]]))}")
 
     def show_scatter(self):
         inputs, targets = self._get_or_generate_datasets()
@@ -59,9 +65,12 @@ def txt_tab_iterator(path):
     targets = []
     for line in txt_line_iterator(path):
         data = line.split('\t')
+        data[2] = (now.year - int(data[2][:4])) * 12 + (now.month - int(data[2][4:])) + 1
         data = [int(v) for v in data]
         inputs.append(data[1:])
         targets.append(data[0])
+    print(f"INPUTS: {inputs[:5]}")
+    print(f"TARGETS: {targets[:5]}")
     return inputs, targets
 
 
