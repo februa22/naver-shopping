@@ -1,9 +1,11 @@
 # coding=utf-8
 import argparse
 import sys
+import platform
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from user_agent import generate_user_agent
 
 from popularity import get_html_by_selenium
 
@@ -45,12 +47,25 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=sys.argv[0] + " description")
     parser.add_argument("--num_query", type=int, default=10, help="검색어 갯수 (default: 10)")
     parser.add_argument("--topk_filepath", type=str, default="", help="인기검색어목록 파일경로")
-    parser.add_argument("--chromedrive_path", type=str, default="", help="Chrome Drive Path for Selenium")
     
     try:
         FLAGS = parser.parse_args()
     except:
         parser.print_help()
         sys.exit(0)
-    DRIVER = webdriver.Chrome(FLAGS.chromedrive_path)
+
+    options = webdriver.ChromeOptions()
+    options.add_argument('headless')
+    options.add_argument('window-size=1920x1080')
+    options.add_argument('disable-gpu')
+    options.add_argument('lang=ko_KR')
+    options.add_argument('no-sandbox')
+    options.add_argument('disable-dev-shm-usage')
+    options.add_argument(f'user-agent={generate_user_agent()}')
+
+    chromedriver_path = f'resources/chromedriver_{platform.system()}'
+    print(f'chromedriver_path={chromedriver_path}')
+    DRIVER = webdriver.Chrome(chromedriver_path, options=options)
+    DRIVER.implicitly_wait(3)
+
     main()
