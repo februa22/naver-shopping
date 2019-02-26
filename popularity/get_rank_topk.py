@@ -1,7 +1,7 @@
 # coding=utf-8
 import argparse
-import sys
 import platform
+import sys
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -32,15 +32,27 @@ def main():
     # Click 조회하기
     DRIVER.find_element_by_xpath("//div[@class='section_instie_area space_top']/div[@class='section insite_inquiry']/div[@class='step_form']/a").click()
 
-    rank_top1000_list_element = DRIVER.find_elements_by_xpath("//ul[@class='rank_top1000_list']/li")
     rank_top1000_data = {"category": "여성의류"}
     rank_top1000_list = []
-    for element in rank_top1000_list_element:
-        query = element.find_element_by_tag_name("a").text.strip().split("\n")[1]
-        rank_top1000_list.append(query)
+    for i in range(5):
+        if i != 0:
+            DRIVER.find_element_by_xpath("//a[@class='btn_page_next']").click()
+            DRIVER.implicitly_wait(3)
+        list_20 = get_20_from_rank_top1000_list_element()
+        rank_top1000_list.extend(list_20)
+
     rank_top1000_data["rank_top1000_list"] = rank_top1000_list
 
     print(rank_top1000_data)
+
+
+def get_20_from_rank_top1000_list_element():
+    list_20 = []
+    rank_top1000_list_element = DRIVER.find_elements_by_xpath("//ul[@class='rank_top1000_list']/li")
+    for element in rank_top1000_list_element:
+        query_and_num = element.find_element_by_tag_name("a").text.strip().split("\n")
+        list_20.append((query_and_num[0], query_and_num[1]))
+    return list_20
 
 
 if __name__ == "__main__":
@@ -64,6 +76,7 @@ if __name__ == "__main__":
     options.add_argument(f'user-agent={generate_user_agent()}')
 
     chromedriver_path = f'resources/chromedriver_{platform.system()}'
+    # chromedriver_path = 'resources/chromedriver_win32/chromedriver.exe'
     print(f'chromedriver_path={chromedriver_path}')
     DRIVER = webdriver.Chrome(chromedriver_path, options=options)
     DRIVER.implicitly_wait(3)
