@@ -32,24 +32,25 @@ def main():
     # Click 조회하기
     DRIVER.find_element_by_xpath("//div[@class='section_instie_area space_top']/div[@class='section insite_inquiry']/div[@class='step_form']/a").click()
 
-    rank_top1000_data = {"category": "여성의류"}
-    rank_top1000_list = []
-    for i in range(5):
+    rank_topk_data = {"category": "여성의류"}
+    rank_topk_list = []
+    k = 5
+    for i in range(k):
         if i != 0:
             DRIVER.find_element_by_xpath("//a[@class='btn_page_next']").click()
             DRIVER.implicitly_wait(3)
-        list_20 = get_20_from_rank_top1000_list_element()
-        rank_top1000_list.extend(list_20)
+        list_20 = get_20_from_rank_topk_list_element()
+        rank_topk_list.extend(list_20)
 
-    rank_top1000_data["rank_top1000_list"] = rank_top1000_list
+    rank_topk_data["rank_top1000_list"] = rank_topk_list
 
-    print(rank_top1000_data)
+    print(rank_topk_data)
 
 
-def get_20_from_rank_top1000_list_element():
+def get_20_from_rank_topk_list_element():
     list_20 = []
-    rank_top1000_list_element = DRIVER.find_elements_by_xpath("//ul[@class='rank_top1000_list']/li")
-    for element in rank_top1000_list_element:
+    rank_topk_list_element = DRIVER.find_elements_by_xpath("//ul[@class='rank_top1000_list']/li")
+    for element in rank_topk_list_element:
         query_and_num = element.find_element_by_tag_name("a").text.strip().split("\n")
         list_20.append((query_and_num[0], query_and_num[1]))
     return list_20
