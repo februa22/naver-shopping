@@ -56,6 +56,7 @@ class PopularityAnalyzer:
         self._add_query_score()
 
     def _load_topk_query(self, k=100):
+        print("Starting _load_topk_query...")
         self.driver.get(SHOPPING_INSIGHT_URL)
 
         # Set category to 패션의류 > 여성의류
@@ -81,11 +82,13 @@ class PopularityAnalyzer:
                 self.rank_topk.append(Query(rank, name))
 
     def _add_num_unpopular(self, max_paging_index=1):
+        print("Starting _add_num_unpopular...")
         num_reviews = 5
         num_jjim = 10
         max_mall_grade = 1
         for query_instance in self.rank_topk:
             query = query_instance.query_name
+            print(f"\t{query}")
             num_productset = get_num_productset(self.driver, query)
             possible_paging_index = get_possible_paging_index(num_productset)
             possible_paging_index = min(possible_paging_index, max_paging_index)
@@ -105,13 +108,16 @@ class PopularityAnalyzer:
             query_instance.num_unpopular = num_unpopular
 
     def _add_query_score(self):
+        print("Starting _add_query_score...")
         for query_instance in self.rank_topk:
+            print(f"\t{query_instance.query_name}")
             rank = query_instance.query_rank
             num_unpopular = query_instance.num_unpopular
             score = num_unpopular / rank
             query_instance.score = score
 
     def save(self):
+        print(f"Saving popularity to {self.popularity_json_path} ...")
         results = {"category": self.category, "score": 0.0}
         results["rank_topk"] = [query.__dict__ for query in self.rank_topk]
         with open(self.popularity_json_path, 'w', encoding='utf-8') as f:
