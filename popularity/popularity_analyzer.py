@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import json
 import platform
 import sys
 from urllib.parse import quote_plus
@@ -12,7 +13,6 @@ from user_agent import generate_user_agent
 SHOPPING_INSIGHT_URL = "https://datalab.naver.com/shoppingInsight/sCategory.naver"
 SHOPPING_SEARCH_URL = 'https://search.shopping.naver.com/search/all.nhn'
 MALL_GRADES = {"플래티넘": 6, "프리미엄": 5, "빅파워": 4, "파워": 3, "새싹": 2, "씨앗": 1}
-
 
 
 class Query:
@@ -114,7 +114,8 @@ class PopularityAnalyzer:
     def save(self):
         results = {"category": self.category, "score": 0.0}
         results["rank_topk"] = [query.__dict__ for query in self.rank_topk]
-        print(results)
+        with open(self.popularity_json_path, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(results, ensure_ascii=False, indent=4))
 
 
 def get_chromedriver():
@@ -250,7 +251,7 @@ def mall_grade_to_number(data_mall_grade):
 
 if __name__ == "__main__":
     chromedriver = get_chromedriver()
-    popularity_json_path = ""
+    popularity_json_path = "popularity.json"
     analyzer = PopularityAnalyzer(chromedriver, popularity_json_path)
     analyzer.analyze_popularity()
     analyzer.save()
