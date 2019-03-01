@@ -23,7 +23,7 @@ MAX_MALL_GRADE = 1
 
 class Query:
     def __init__(self, rank, name):
-        self.query_rank = rank
+        self.query_rank = int(rank) if not isinstance(rank, int) else rank
         self.query_name = name
         self.num_unpopular = {'씨앗': 0, '새싹': 0, '파워': 0, '빅파워': 0, '프리미엄': 0, '플래티넘': 0}
         self.score = 0.0
@@ -91,8 +91,7 @@ class PopularityAnalyzer:
         print("Starting _add_num_unpopular...")
         for query_instance in self.rank_topk:
             try:
-                num_unpopular = self._count_num_unpopular(query_instance)
-                query_instance.num_unpopular = num_unpopular
+                self._count_num_unpopular(query_instance)
             except Exception as e:
                 print(e)
                 pass
@@ -103,10 +102,8 @@ class PopularityAnalyzer:
         possible_paging_index = get_possible_paging_index(num_productset)
         possible_paging_index = min(possible_paging_index, MAX_PAGING_INDEX)
 
-        num_unpopular = 0
         for paging_index in range(possible_paging_index):
-            num_unpopular += self._count_num_unpopular_in_a_page(query_instance, paging_index + 1)
-        return num_unpopular
+            self._count_num_unpopular_in_a_page(query_instance, paging_index + 1)
 
     def _count_num_unpopular_in_a_page(self, query_instance, paging_index):
         query = query_instance.query_name
@@ -181,8 +178,8 @@ class PopularityAnalyzer:
 
 
 def get_chromedriver():
-    # chromedriver_path = f'resources/chromedriver_{platform.system()}'
-    chromedriver_path = 'resources/chromedriver_win32/chromedriver.exe'
+    chromedriver_path = f'resources/chromedriver_{platform.system()}'
+    # chromedriver_path = 'resources/chromedriver_win32/chromedriver.exe'
     print(f'chromedriver_path={chromedriver_path}')
 
     options = webdriver.ChromeOptions()
