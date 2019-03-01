@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import datetime
 import json
 import platform
 import sys
@@ -76,7 +77,7 @@ class PopularityAnalyzer:
         # 조회하기 click
         self.driver.find_element_by_xpath("//div[@class='section_instie_area space_top']/div[@class='section insite_inquiry']/div[@class='step_form']/a").click()
 
-        k = 1  # default: 5
+        k = 5  # default: 5
         for i in range(k):
             if i != 0:
                 self.driver.find_element_by_xpath("//a[@class='btn_page_next']").click()
@@ -170,16 +171,18 @@ class PopularityAnalyzer:
             query_instance.score = score
 
     def save(self):
+        now = datetime.datetime.now()
         print(f"Saving popularity to {self.popularity_json_path} ...")
-        results = {"category": self.category, "score": 0.0}
+        results = {"category": self.category, "date_time": now.strftime('%Y-%m-%d %H:%M:%S')}
         results["rank_topk"] = [query.__dict__ for query in self.rank_topk]
         with open(self.popularity_json_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(results, ensure_ascii=False, indent=4))
 
 
 def get_chromedriver():
-    chromedriver_path = f'resources/chromedriver_{platform.system()}'
-    # chromedriver_path = 'resources/chromedriver_win32/chromedriver.exe'
+    system_name = platform.system()
+    suffix = 'Windows.exe' if system_name == 'Windows' else system_name
+    chromedriver_path = f'resources/chromedriver_{suffix}'
     print(f'chromedriver_path={chromedriver_path}')
 
     options = webdriver.ChromeOptions()
