@@ -2,13 +2,12 @@
 # coding=utf-8
 import datetime
 import json
+import locale
 import platform
 import sys
-import locale
 from urllib.parse import quote_plus
 from urllib.parse import urlencode
 
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from user_agent import generate_user_agent
 
