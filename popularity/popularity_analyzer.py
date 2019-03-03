@@ -60,6 +60,7 @@ class PopularityAnalyzer:
         self._load_topk_query()
         self._add_num_unpopular()
         self._add_query_score()
+        self.driver.quit()
 
     def _load_topk_query(self, k=100):
         print("Starting _load_topk_query...")
@@ -112,6 +113,7 @@ class PopularityAnalyzer:
         url = f'{SHOPPING_SEARCH_URL}?{params_encoded}'
         self.driver.get(url)
         self.driver.implicitly_wait(3)
+        current_window = self.driver.current_window_handle
 
         # 판매처가 한개
         try:
@@ -159,6 +161,12 @@ class PopularityAnalyzer:
             mall_grade_text = MALL_GRADES_TO_STR[mall_grade]
             num_unpopular = query_instance.num_unpopular[mall_grade_text]
             query_instance.num_unpopular[mall_grade_text] = num_unpopular + 1
+
+            # Close new window
+            new_window = [window for window in self.driver.window_handles if window != current_window][0]
+            self.driver.switch_to.window(new_window)
+            self.driver.close()
+            self.driver.switch_to.window(current_window)
 
     def _add_query_score(self):
         print("Starting _add_query_score...")
