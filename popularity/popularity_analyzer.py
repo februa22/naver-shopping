@@ -69,6 +69,12 @@ class PopularityAnalyzer:
         # Set category to 패션의류 > 여성의류
         self.driver.find_element_by_xpath("//div[@class='set_period category']/div[2]/span").click()
         self.driver.find_element_by_xpath("//a[@data-cid='50000167']").click()
+        
+        # Set category to 패션의류 > 여성의류 > 재킷
+        # 니트 --> 50000805
+        # 재킷 --> 50000815
+        self.driver.find_element_by_xpath("//div[@class='set_period category']/div[3]/span").click()
+        self.driver.find_element_by_xpath("//a[@data-cid='50000815']").click()
 
         # Set period to 주간
         self.driver.find_element_by_xpath("//div[@class='select w4']/span").click()
