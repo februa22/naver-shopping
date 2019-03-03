@@ -81,7 +81,7 @@ class PopularityAnalyzer:
         for i in range(k):
             if i != 0:
                 self.driver.find_element_by_xpath("//a[@class='btn_page_next']").click()
-                self.driver.implicitly_wait(3)
+                self.driver.implicitly_wait(5)
 
             rank_topk_list_element = self.driver.find_elements_by_xpath("//ul[@class='rank_top1000_list']/li")
             for element in rank_topk_list_element:
@@ -112,7 +112,7 @@ class PopularityAnalyzer:
         params_encoded = urlencode(params, quote_via=quote_plus)
         url = f'{SHOPPING_SEARCH_URL}?{params_encoded}'
         self.driver.get(url)
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(5)
         current_window = self.driver.current_window_handle
 
         # 판매처가 한개
@@ -137,7 +137,7 @@ class PopularityAnalyzer:
         goods_list_with_malls = filter_by_num_reviews_and_jjim(goods_list_with_malls)
         for li in goods_list_with_malls:
             li.find_element_by_xpath('.//a[@class="btn_compare"]').click()
-            self.driver.implicitly_wait(3)
+            self.driver.implicitly_wait(5)
 
             try:
                 jjim = 0
@@ -202,7 +202,7 @@ def get_chromedriver():
     options.add_argument(f'user-agent={generate_user_agent()}')
 
     chromedriver = webdriver.Chrome(chromedriver_path, options=options)
-    chromedriver.implicitly_wait(3)
+    chromedriver.implicitly_wait(5)
     return chromedriver
 
 
