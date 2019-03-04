@@ -19,6 +19,7 @@ MAX_PAGING_INDEX = 1
 NUM_REVIEWS = 5
 NUM_JJIM = 10
 MAX_MALL_GRADE = 1
+locale.setlocale(locale.LC_ALL, 'ko_KR.UTF-8')
 
 
 class Query:
@@ -72,6 +73,7 @@ class PopularityAnalyzer:
         
         # Set category to 패션의류 > 여성의류 > 재킷
         # 니트 --> 50000805
+        # 코트 --> 50000813
         # 재킷 --> 50000815
         self.driver.find_element_by_xpath("//div[@class='set_period category']/div[3]/span").click()
         self.driver.find_element_by_xpath("//a[@data-cid='50000815']").click()
@@ -124,13 +126,15 @@ class PopularityAnalyzer:
         # 판매처가 한개
         try:
             goods_list_with_a_mall = self.driver.find_elements_by_xpath('//li[@class="_itemSection"]')
-        except Exception:
+        except Exception as e:
+            print(e)
             goods_list_with_a_mall = []
         goods_list_with_a_mall = filter_by_num_reviews_and_jjim(goods_list_with_a_mall)
         for li in goods_list_with_a_mall:
             try:
                 mall_grade = li.find_element_by_xpath('.//a[@class="btn_detail _btn_mall_detail"]').get_attribute('data-mall-grade').strip()
-            except Exception:
+            except Exception as e:
+                print(e)
                 mall_grade = '씨앗'
             num_unpopular = query_instance.num_unpopular[mall_grade]
             query_instance.num_unpopular[mall_grade] = num_unpopular + 1
@@ -138,7 +142,8 @@ class PopularityAnalyzer:
         # 판매처가 여러개
         try:
             goods_list_with_malls = self.driver.find_elements_by_xpath('//li[@class="_model_list _itemSection"]')
-        except Exception:
+        except Exception as e:
+            print(e)
             goods_list_with_malls = []
         goods_list_with_malls = filter_by_num_reviews_and_jjim(goods_list_with_malls)
         for li in goods_list_with_malls:
@@ -151,7 +156,8 @@ class PopularityAnalyzer:
                 for element in jjim_elements:
                     jjim_text = element.text.strip()
                     jjim += locale.atoi(jjim_text)
-            except Exception:
+            except Exception as e:
+                print(e)
                 jjim = 0
             if jjim > NUM_JJIM:
                 continue
@@ -162,7 +168,8 @@ class PopularityAnalyzer:
                 for element in mall_grade_elements:
                     mall_grade_text = element.get_attribute("data-mall-grade")
                     mall_grade = max(mall_grade, MALL_GRADES_TO_ID[mall_grade_text])
-            except Exception:
+            except Exception as e:
+                print(e)
                 pass
             mall_grade_text = MALL_GRADES_TO_STR[mall_grade]
             num_unpopular = query_instance.num_unpopular[mall_grade_text]
@@ -234,8 +241,9 @@ def filter_by_num_reviews_and_jjim(goods_list):
             # 리뷰수 필터
             try:
                 review_text = li.find_element_by_xpath('.//a[@class="graph"]/em').text.strip()
-                review = int(review_text)
-            except Exception:
+                review = locale.atoi(review_text)
+            except Exception as e:
+                print(e)
                 review = 0
             if review > NUM_REVIEWS:
                 continue
@@ -244,7 +252,8 @@ def filter_by_num_reviews_and_jjim(goods_list):
             try:
                 jjim_text = li.find_element_by_xpath('.//a[@class="jjim _jjim"]/em').text.strip()
                 jjim = locale.atoi(jjim_text)
-            except Exception:
+            except Exception as e:
+                print(e)
                 jjim = 0
             if jjim > NUM_JJIM:
                 continue
