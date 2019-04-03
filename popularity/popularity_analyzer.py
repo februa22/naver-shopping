@@ -15,7 +15,7 @@ SHOPPING_INSIGHT_URL = "https://datalab.naver.com/shoppingInsight/sCategory.nave
 SHOPPING_SEARCH_URL = 'https://search.shopping.naver.com/search/all.nhn'
 MALL_GRADES_TO_ID = {"플래티넘": 6, "프리미엄": 5, "빅파워": 4, "파워": 3, "새싹": 2, "씨앗": 1}
 MALL_GRADES_TO_STR = {6: "플래티넘", 5: "프리미엄", 4: "빅파워", 3: "파워", 2: "새싹", 1: "씨앗"}
-MAX_PAGING_INDEX = 1
+MAX_PAGING_INDEX = 3
 NUM_REVIEWS = 5
 NUM_JJIM = 10
 MAX_MALL_GRADE = 1
@@ -27,6 +27,7 @@ class Query:
         self.query_rank = int(rank) if not isinstance(rank, int) else rank
         self.query_name = name
         self.num_unpopular = {'씨앗': 0, '새싹': 0, '파워': 0, '빅파워': 0, '프리미엄': 0, '플래티넘': 0}
+        self.unpopular_ranks = {'씨앗': [], '새싹': [], '파워': [], '빅파워': [], '프리미엄': [], '플래티넘': []}
         self.score = 0.0
 
     def set_score(self):
@@ -75,8 +76,9 @@ class PopularityAnalyzer:
         # 니트 --> 50000805
         # 코트 --> 50000813
         # 재킷 --> 50000815
-        self.driver.find_element_by_xpath("//div[@class='set_period category']/div[3]/span").click()
-        self.driver.find_element_by_xpath("//a[@data-cid='50000815']").click()
+        # 스커트 --> 50000808
+        # self.driver.find_element_by_xpath("//div[@class='set_period category']/div[3]/span").click()
+        # self.driver.find_element_by_xpath("//a[@data-cid='50000808']").click()
 
         # Set period to 주간
         self.driver.find_element_by_xpath("//div[@class='select w4']/span").click()
@@ -89,10 +91,10 @@ class PopularityAnalyzer:
         for i in range(k):
             if i != 0:
                 self.driver.find_element_by_xpath("//a[@class='btn_page_next']").click()
-                self.driver.implicitly_wait(5)
+                self.driver.implicitly_wait(3)
 
             rank_topk_list_element = self.driver.find_elements_by_xpath("//ul[@class='rank_top1000_list']/li")
-            for element in rank_topk_list_element:
+            for j, element in enumerate(rank_topk_list_element):
                 rank, name = element.find_element_by_tag_name("a").text.strip().split("\n")
                 self.rank_topk.append(Query(rank, name))
 
@@ -120,66 +122,77 @@ class PopularityAnalyzer:
         params_encoded = urlencode(params, quote_via=quote_plus)
         url = f'{SHOPPING_SEARCH_URL}?{params_encoded}'
         self.driver.get(url)
-        self.driver.implicitly_wait(5)
+        self.driver.implicitly_wait(3)
         current_window = self.driver.current_window_handle
 
         # 판매처가 한개
         try:
             goods_list_with_a_mall = self.driver.find_elements_by_xpath('//li[@class="_itemSection"]')
         except Exception as e:
+            print('//li[@class="_itemSection"] not found.')
             print(e)
-            goods_list_with_a_mall = []
-        goods_list_with_a_mall = filter_by_num_reviews_and_jjim(goods_list_with_a_mall)
-        for li in goods_list_with_a_mall:
-            try:
-                mall_grade = li.find_element_by_xpath('.//a[@class="btn_detail _btn_mall_detail"]').get_attribute('data-mall-grade').strip()
-            except Exception as e:
-                print(e)
-                mall_grade = '씨앗'
-            num_unpopular = query_instance.num_unpopular[mall_grade]
-            query_instance.num_unpopular[mall_grade] = num_unpopular + 1
+        else:
+            goods_list_with_a_mall = filter_by_num_reviews_and_jjim(goods_list_with_a_mall)
+            for li in goods_list_with_a_mall:
+                try:
+                    mall_grade = li.find_element_by_xpath('.//a[@class="btn_detail _btn_mall_detail"]').get_attribute('data-mall-grade').strip()
+                except Exception as e:
+                    print(e)
+                    mall_grade = '씨앗'
+                num_unpopular = query_instance.num_unpopular[mall_grade]
+                query_instance.num_unpopular[mall_grade] = num_unpopular + 1
+                # Get rank
+                data_expose_rank = int(li.get_attribute('data-expose-rank'))
+                # Get date
+                date = li.find_element_by_xpath('.//span[@class="date"]').text.strip()[4:]
+                query_instance.unpopular_ranks[mall_grade].append((data_expose_rank, date))
         
         # 판매처가 여러개
         try:
             goods_list_with_malls = self.driver.find_elements_by_xpath('//li[@class="_model_list _itemSection"]')
         except Exception as e:
+            print('//li[@class="_model_list _itemSection"] not found.')
             print(e)
-            goods_list_with_malls = []
-        goods_list_with_malls = filter_by_num_reviews_and_jjim(goods_list_with_malls)
-        for li in goods_list_with_malls:
-            li.find_element_by_xpath('.//a[@class="btn_compare"]').click()
-            self.driver.implicitly_wait(5)
+        else:
+            goods_list_with_malls = filter_by_num_reviews_and_jjim(goods_list_with_malls)
+            for li in goods_list_with_malls:
+                data_expose_rank = int(li.get_attribute('data-expose-rank'))
+                date = li.find_element_by_xpath('.//span[@class="date"]').text.strip()[4:]
+                li.find_element_by_xpath('.//a[@class="btn_compare"]').click()
 
-            try:
-                jjim = 0
-                jjim_elements = self.driver.find_elements_by_xpath('//a[@class="sico_zzim_txt _jjim "]/em')
-                for element in jjim_elements:
-                    jjim_text = element.text.strip()
-                    jjim += locale.atoi(jjim_text)
-            except Exception as e:
-                print(e)
-                jjim = 0
-            if jjim > NUM_JJIM:
-                continue
+                try:
+                    # self.driver.switch_to.window(self.driver.window_handles[1])
+                    new_window = [window for window in self.driver.window_handles if window != current_window][0]
+                    self.driver.switch_to.window(new_window)
+                    self.driver.implicitly_wait(3)
+                    jjim = 0
+                    jjim_elements = self.driver.find_elements_by_xpath('//a[@class="sico_zzim_txt _jjim "]/em')
+                    for element in jjim_elements:
+                        jjim_text = element.text.strip()
+                        jjim += locale.atoi(jjim_text)
+                except Exception as e:
+                    print(e)
+                    jjim = 0
+                if jjim <= NUM_JJIM:
+                    mall_grade = 1
+                    try:
+                        mall_grade_elements = self.driver.find_elements_by_xpath('//a[@class="_btn_mall_detail _noadd"]')
+                        for element in mall_grade_elements:
+                            mall_grade_text = element.get_attribute("data-mall-grade")
+                            mall_grade = max(mall_grade, MALL_GRADES_TO_ID[mall_grade_text])
+                    except Exception as e:
+                        print(e)
+                        pass
+                    mall_grade_text = MALL_GRADES_TO_STR[mall_grade]
+                    num_unpopular = query_instance.num_unpopular[mall_grade_text]
+                    query_instance.num_unpopular[mall_grade_text] = num_unpopular + 1
+                    query_instance.unpopular_ranks[mall_grade_text].append((data_expose_rank, date))
 
-            mall_grade = 1
-            try:
-                mall_grade_elements = self.driver.find_elements_by_xpath('//a[@class="_btn_mall_detail _noadd"]')
-                for element in mall_grade_elements:
-                    mall_grade_text = element.get_attribute("data-mall-grade")
-                    mall_grade = max(mall_grade, MALL_GRADES_TO_ID[mall_grade_text])
-            except Exception as e:
-                print(e)
-                pass
-            mall_grade_text = MALL_GRADES_TO_STR[mall_grade]
-            num_unpopular = query_instance.num_unpopular[mall_grade_text]
-            query_instance.num_unpopular[mall_grade_text] = num_unpopular + 1
-
-            # Close new window
-            new_window = [window for window in self.driver.window_handles if window != current_window][0]
-            self.driver.switch_to.window(new_window)
-            self.driver.close()
-            self.driver.switch_to.window(current_window)
+                # Close new window
+                # new_window = [window for window in self.driver.window_handles if window != current_window][0]
+                # self.driver.switch_to.window(new_window)
+                self.driver.close()
+                self.driver.switch_to.window(current_window)
 
     def _add_query_score(self):
         print("Starting _add_query_score...")
@@ -193,7 +206,11 @@ class PopularityAnalyzer:
     def save(self):
         now = datetime.datetime.now()
         print(f"Saving popularity to {self.popularity_json_path} ...")
-        results = {"category": self.category, "date_time": now.strftime('%Y-%m-%d %H:%M:%S')}
+        results = {
+            "category": self.category,
+            "date_time": now.strftime('%Y-%m-%d %H:%M:%S'),
+            "target_pages": MAX_PAGING_INDEX * 2
+        }
         results["rank_topk"] = [query.__dict__ for query in self.rank_topk]
         with open(self.popularity_json_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(results, ensure_ascii=False, indent=4))
@@ -215,7 +232,7 @@ def get_chromedriver():
     options.add_argument(f'user-agent={generate_user_agent()}')
 
     chromedriver = webdriver.Chrome(chromedriver_path, options=options)
-    chromedriver.implicitly_wait(5)
+    chromedriver.implicitly_wait(3)
     return chromedriver
 
 
